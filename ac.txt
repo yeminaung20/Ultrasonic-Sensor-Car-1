@@ -1,0 +1,239 @@
+#include <Servo.h>
+int motor1Pin1 = 5; // pin 2 on L293D IC
+int motor1Pin2 = 6; // pin 7 on L293D IC
+
+int motor2Pin1 = 9; // pin 10 on L293D IC
+int motor2Pin2 = 10; // pin 15 on L293D IC
+
+Servo servo;
+int pos = 80;
+
+int horn = 12;
+
+int right = 'o';
+int left = 'i';
+
+int trig = 51;
+int echo = 53;
+
+int state = 'S';
+int previous_state = 'S';
+int flag = 0;
+int stateStop = 0;
+int speed_rate = 170;
+
+void setup() {
+
+  // sets the pins as outputs:
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  //    pinMode(enable1Pin, OUTPUT);
+
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+
+  pinMode(12, OUTPUT);
+
+  left = 'I';
+  servo.attach(52);
+
+  pinMode(trig, OUTPUT);
+  pinMode(echo, INPUT);
+  pinMode(horn, OUTPUT);
+
+  analogWrite(motor1Pin1, 0);   //PWM Speed Control
+  analogWrite(motor1Pin2, 0);   //PWM Speed Control
+
+  analogWrite(motor2Pin1, 0);   //PWM Speed Control
+  analogWrite(motor2Pin2, 0);   //PWM Speed Control
+
+  Serial.begin(9600);
+  Serial.println("RC CAR");
+  speed_rate = 200;
+  delay(1000);
+  speed_rate = 150;
+  delay(1000);
+  speed_rate = 50;
+}
+
+void loop() {
+  if (state == 'S') {
+    float duration, distance;
+    digitalWrite(51, LOW);
+    delayMicroseconds(2);
+    digitalWrite(51, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(51, LOW);
+    duration = pulseIn(53, HIGH);
+
+    distance = (duration / 2) / 28.57;
+
+    if (distance >= 200 || distance <= 15)
+    {
+      state = 'B';
+      digitalWrite(horn, HIGH);
+      delay(100);
+      digitalWrite(horn, LOW);
+    }
+    else {
+      state = 'F';
+    }
+  }
+  if (state == 'W' && left == 'I') {
+    state = 'V';
+    if (state == 'V' && left == 'I') {
+      float duration, distance;
+      pos = 40;
+      servo.write(pos);
+      delay(1000);
+      digitalWrite(51, LOW);
+      delayMicroseconds(2);
+      digitalWrite(51, HIGH);
+      delayMicroseconds(10);
+      digitalWrite(51, LOW);
+      duration = pulseIn(53, HIGH);
+
+      distance = (duration / 2) / 28.57;
+
+      if (distance >= 200 || distance <= 15) {
+        state = 'G';
+        digitalWrite(horn, HIGH);
+        delay(100);
+        digitalWrite(horn, LOW);
+      }
+      else {
+        state = 'R';
+        right = 'O';
+        left = 'i';
+      }
+    }
+    if (state == 'G') {
+    float duration, distance;
+    pos = 140;
+    servo.write(pos);
+    delay(1000);
+    digitalWrite(51, LOW);
+    delayMicroseconds(2);
+    digitalWrite(51, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(51, LOW);
+    duration = pulseIn(53, HIGH);
+
+    distance = (duration / 2) / 28.57;
+
+    if (distance >= 200 || distance <= 15) {
+      state = 'B';
+      digitalWrite(horn, HIGH);
+      delay(100);
+      digitalWrite(horn, LOW);
+    }
+    else {
+      state = 'L';
+      left = 'I';
+      right= 'o';
+    }
+  }
+
+  }
+  
+  if (state == 'F') {
+    analogWrite(motor1Pin1, 0);   //PWM Speed Control
+    analogWrite(motor1Pin2, speed_rate);   //PWM Speed Control
+
+    analogWrite(motor2Pin1, speed_rate);   //PWM Speed Control
+    analogWrite(motor2Pin2, 0);   //PWM Speed Control
+    Serial.println("Go Forward!");
+    delay(100);
+    state = 'S';
+  }
+  if (state == 'B') {
+    analogWrite(motor1Pin1, speed_rate);   //PWM Speed Control
+    analogWrite(motor1Pin2, 0);   //PWM Speed Control
+
+    analogWrite(motor2Pin1, 0);   //PWM Speed Control
+    analogWrite(motor2Pin2, speed_rate);   //PWM Speed Control
+    Serial.println("BACK!");
+    delay(100);
+    state = 'W';
+  }
+  if (state == 'R') {
+    analogWrite(motor1Pin1, 0);   //PWM Speed Control
+    analogWrite(motor1Pin2, speed_rate);   //PWM Speed Control
+
+    analogWrite(motor2Pin1, 0);   //PWM Speed Control
+    analogWrite(motor2Pin2, 0);   //PWM Speed Control
+    Serial.println("Turn RIGHT");
+    pos = 80;
+    servo.write(pos);
+    delay(1000);
+    state = 'S';
+  }
+  if (state == 'L') {
+    analogWrite(motor1Pin1, 0);   //PWM Speed Control
+    analogWrite(motor1Pin2, 0);   //PWM Speed Control
+
+    analogWrite(motor2Pin1, speed_rate);   //PWM Speed Control
+    analogWrite(motor2Pin2, 0);   //PWM Speed Control
+    Serial.println("Turn LEFT");
+    pos = 80;
+    servo.write(pos);
+    delay(1000);
+    state = 'S';
+  }
+    if (state == 'W' && right == 'O') {
+    state = 'Z';
+    if (state == 'Z' && right == 'O') {
+      float duration, distance;
+      pos = 140;
+      servo.write(pos);
+      delay(1000);
+      digitalWrite(51, LOW);
+      delayMicroseconds(2);
+      digitalWrite(51, HIGH);
+      delayMicroseconds(10);
+      digitalWrite(51, LOW);
+      duration = pulseIn(53, HIGH);
+
+      distance = (duration / 2) / 28.57;
+
+      if (distance >= 200 || distance <= 15) {
+        state = 'X';
+        digitalWrite(horn, HIGH);
+        delay(100);
+        digitalWrite(horn, LOW);
+      }
+      else {
+        state = 'L';
+        left = 'I';
+        right = 'o';
+      }
+    }
+        if (state == 'X') {
+      float duration, distance;
+      pos = 40;
+      servo.write(pos);
+      delay(1000);
+      digitalWrite(51, LOW);
+      delayMicroseconds(2);
+      digitalWrite(51, HIGH);
+      delayMicroseconds(10);
+      digitalWrite(51, LOW);
+      duration = pulseIn(53, HIGH);
+
+      distance = (duration / 2) / 28.57;
+
+      if (distance >= 200 || distance <= 15) {
+        state = 'B';
+        digitalWrite(horn, HIGH);
+        delay(100);
+        digitalWrite(horn, LOW);
+      }
+      else {
+        state = 'R';
+        right = 'O';
+        left = 'i';
+      }
+    }
+  }
+}
+
